@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  tesseract:
+    image: tesseractshadow/tesseract4re
+    container_name: tesseract-ocr
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    working_dir: /app
+    command: tail -f /dev/null
+    environment:
+      - TESSDATA_PREFIX=/usr/share/tessdata
+    networks:
+      - ocr-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./uploads:/usr/share/nginx/html/uploads
+      - ./results:/usr/share/nginx/html/results
+      - ./web:/usr/share/nginx/html
+    depends_on:
+      - tesseract
+    networks:
+      - ocr-network
+
+  # OCR処理用のPythonアプリケーション
+  ocr-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: ocr-app
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./app:/app
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      - tesseract
+    networks:
+      - ocr-network
+
+networks:
+  ocr-network:
+    driver: bridge
+
+volumes:
+  uploads:
+  results:
