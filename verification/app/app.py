@@ -28,25 +28,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def preprocess_image(image_path):
-    """画像の前処理を行う"""
-    # OpenCVで画像を読み込み
-    image = cv2.imread(image_path)
-    
-    # グレースケール変換
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    # ノイズ除去
-    denoised = cv2.medianBlur(gray, 3)
-    
-    # 二値化
-    _, binary = cv2.threshold(denoised, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    
-    # 前処理済み画像を保存
-    processed_path = image_path.replace('.', '_processed.')
-    cv2.imwrite(processed_path, binary)
-    
-    return processed_path
+
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -56,6 +38,7 @@ def health_check():
 @app.route('/ocr', methods=['POST'])
 def ocr_process():
     """OCR処理のメインエンドポイント"""
+    print("OCR処理開始")
     try:
         # ファイルの確認
         if 'file' not in request.files:
@@ -80,26 +63,19 @@ def ocr_process():
         # 言語設定の取得（デフォルトは日本語+英語）
         languages = request.form.get('languages', 'jpn+eng')
         
-        # 前処理の実行
-        processed_filepath = preprocess_image(filepath)
-        
         # OCR処理の実行
         try:
-            # 前処理済み画像でOCR実行
-            text_processed = pytesseract.image_to_string(
-                Image.open(processed_filepath), 
-                lang=languages,
-                config='--psm 6'
-            )
-            
-            # 元画像でもOCR実行（比較用）
-            text_original = pytesseract.image_to_string(
+            print(f"OCR処理実行中... 言語: {languages}")
+            # 画像でOCR実行
+            text_result = pytesseract.image_to_string(
                 Image.open(filepath), 
                 lang=languages,
                 config='--psm 6'
             )
+            print("OCR処理完了")
             
         except Exception as ocr_error:
+            print(f"OCR処理エラー: {str(ocr_error)}")
             return jsonify({'error': f'OCR processing failed: {str(ocr_error)}'}), 500
         
         # 結果の保存
@@ -107,9 +83,8 @@ def ocr_process():
             'filename': filename,
             'timestamp': timestamp,
             'languages': languages,
-            'text_original': text_original.strip(),
-            'text_processed': text_processed.strip(),
-            'confidence': pytesseract.image_to_data(Image.open(processed_filepath), lang=languages, output_type=pytesseract.Output.DICT)
+            'text_result': text_result.strip(),
+            'confidence': pytesseract.image_to_data(Image.open(filepath), lang=languages, output_type=pytesseract.Output.DICT)
         }
         
         result_filename = f"{timestamp}_result.json"
@@ -122,11 +97,11 @@ def ocr_process():
         response_data = {
             'success': True,
             'filename': filename,
-            'text_original': text_original.strip(),
-            'text_processed': text_processed.strip(),
+            'text_result': text_result.strip(),
             'result_file': result_filename
         }
         
+        print("OCR処理完了、レスポンス送信")
         return jsonify(response_data)
         
     except Exception as e:

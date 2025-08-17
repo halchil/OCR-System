@@ -98,9 +98,6 @@
         }
 
         .results {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
             margin-top: 30px;
         }
 
@@ -273,12 +270,8 @@
 
             <div id="results" class="results" style="display: none;">
                 <div class="result-box">
-                    <h3>📄 元画像の結果</h3>
-                    <div id="originalResult" class="result-text"></div>
-                </div>
-                <div class="result-box">
-                    <h3>🔧 前処理後の結果</h3>
-                    <div id="processedResult" class="result-text"></div>
+                    <h3>📄 OCR結果</h3>
+                    <div id="ocrResult" class="result-text"></div>
                 </div>
             </div>
 
@@ -298,8 +291,7 @@
         const loading = document.getElementById('loading');
         const status = document.getElementById('status');
         const results = document.getElementById('results');
-        const originalResult = document.getElementById('originalResult');
-        const processedResult = document.getElementById('processedResult');
+        const ocrResult = document.getElementById('ocrResult');
         const fileList = document.getElementById('fileList');
 
         // ドラッグ&ドロップ機能
@@ -380,9 +372,8 @@
         }
 
         function displayResults(data) {
-            originalResult.textContent = data.text_original || 'テキストが検出されませんでした。';
-            processedResult.textContent = data.text_processed || 'テキストが検出されませんでした。';
-            results.style.display = 'grid';
+            ocrResult.textContent = data.text_result || 'テキストが検出されませんでした。';
+            results.style.display = 'block';
         }
 
         async function loadFileList() {
