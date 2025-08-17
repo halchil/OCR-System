@@ -1,0 +1,35 @@
+{
+  "filename": "20250817_111718_img_carColumn79--01_4.jpg",
+  "timestamp": "20250817_111718",
+  "analysis_type": "general",
+  "analysis_result": {
+    "text_content": "自動車検査証\n登録番号　品川　399　さ　1234\n有効期間の満了する日　令和2年10月1日\n登録の年月日　令和2年10月1日\n自家用\n使用の本拠の位置\n98765\n車台番号　ZZZ99-SAMPE01\n型式指定番号　ZXY-ABC99\n原動機の型式　ABC-3DE\n燃料の種類　ガソリン\n車両重量　750kg\n車両総重量　1350kg\n最大積載量　600kg\n乗車定員　5人\n備考　H10騒音99db、その他\n国土交通\n東京都輸輸支局長\n41200000012\nICタグ",
+    "important_info": "令和2年10月1日, 98765, 品川399さ1234, ZZX99-SAMPE01",
+    "image_type": "自動車検査証",
+    "analysis": "この画像は自動車検査証であり、車両の登録情報、使用本拠、型式番号などが含まれています。重要な日付として有効期間と登録年月日が記載されています。"
+  },
+  "vehicle_numbers": [
+    "ABC99",
+    "41200000",
+    "1350",
+    "SAMPE01",
+    "1234",
+    "98765",
+    "ZZZ99"
+  ],
+  "api_used": "ChatGPT GPT-4 Vision",
+  "processing_info": {
+    "total_vehicle_numbers_found": 7,
+    "api_vehicle_number": "",
+    "regex_vehicle_numbers": [
+      "ABC99",
+      "41200000",
+      "1350",
+      "SAMPE01",
+      "1234",
+      "98765",
+      "ZZZ99"
+    ],
+    "confidence": "unknown"
+  }
+}

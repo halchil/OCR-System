@@ -1,0 +1,50 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: ocr-ai-nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./uploads:/usr/share/nginx/html/uploads
+      - ./results:/usr/share/nginx/html/results
+      - ./web:/usr/share/nginx/html
+    networks:
+      - ocr-ai-network
+    restart: unless-stopped
+    depends_on:
+      - ocr-ai-app
+
+  # ChatGPT APIを使用したOCR処理用のPythonアプリケーション
+  ocr-ai-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: ocr-ai-app
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+      - ./app:/app
+    environment:
+      - FLASK_ENV=development
+      - FLASK_APP=app.py
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    ports:
+      - "5001:5000"
+    networks:
+      - ocr-ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  ocr-ai-network:
+    driver: bridge
+
+volumes:
+  uploads:
+  results:

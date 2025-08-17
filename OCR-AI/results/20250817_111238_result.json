@@ -1,0 +1,16 @@
+{
+  "filename": "20250817_111238_img_carColumn79--01_4.jpg",
+  "timestamp": "20250817_111238",
+  "analysis_type": "vehicle",
+  "analysis_result": {
+    "error": "API呼び出しエラー: The model `gpt-4-vision-preview` has been deprecated, learn more here: https://platform.openai.com/docs/deprecations"
+  },
+  "vehicle_numbers": [],
+  "api_used": "ChatGPT GPT-4 Vision",
+  "processing_info": {
+    "total_vehicle_numbers_found": 0,
+    "api_vehicle_number": "",
+    "regex_vehicle_numbers": [],
+    "confidence": "unknown"
+  }
+}

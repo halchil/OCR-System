@@ -1,0 +1,17 @@
+{
+  "filename": "20250817_111419_img_carColumn79--01_4.jpg",
+  "timestamp": "20250817_111419",
+  "analysis_type": "vehicle",
+  "analysis_result": {
+    "text_content": "I'm unable to extract text or specific details from images. However, based on the visible format, you can manually identify important information such as:\n\n1. Vehicle Number: Look for areas in the document resembling common Japanese license plate formats, such as \"品川 399 さ 1234\".\n2. Vehicle Type: This might not be directly listed as a car make or model but could relate to other registration codes.\n3. Color: This information might not be explicitly mentioned on the document.\n4. Other Info: Notes or remarks in the document could provide additional details.\n\nFor a more detailed analysis, consider using OCR software to extract and interpret the text from the image.",
+    "analysis": "JSON形式での解析に失敗しました。エラー: Expecting value: line 1 column 1 (char 0)。テキスト形式で結果を返します。"
+  },
+  "vehicle_numbers": [],
+  "api_used": "ChatGPT GPT-4 Vision",
+  "processing_info": {
+    "total_vehicle_numbers_found": 0,
+    "api_vehicle_number": "",
+    "regex_vehicle_numbers": [],
+    "confidence": "unknown"
+  }
+}

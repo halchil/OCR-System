@@ -1,0 +1,46 @@
+{
+  "filename": "20250817_112457_img_carColumn79--01_4.jpg",
+  "timestamp": "20250817_112457",
+  "analysis_type": "vehicle",
+  "analysis_result": {
+    "vehicle_number": "品川399さ1234",
+    "vehicle_type": "ZZZ99-SAMPLE01",
+    "color": "",
+    "other_info": "ガソリン, 1.59",
+    "full_text": "自動車検査証 令和2年10月1日 東京運輸支局長 品川399さ1234 令和2年10月 普通 乗用 自家用 98765 0001 コードヌウケ ZZZ99-SAMPLE01 ガソリン ZZX-ABC99 ABC-3DE 750kg 600kg 5人 1350 1625 448 173 149 国土 交通 備考 H10騒音99db, その他",
+    "confidence": "高"
+  },
+  "vehicle_numbers": [
+    "1350 1625",
+    "ABC99",
+    "1625",
+    "8765 0001",
+    "1350",
+    "448 173",
+    "1234",
+    "98765",
+    "0001",
+    "ZZZ99",
+    "SAMPLE01",
+    "品川399さ1234"
+  ],
+  "api_used": "ChatGPT GPT-4 Vision",
+  "processing_info": {
+    "total_vehicle_numbers_found": 12,
+    "api_vehicle_number": "品川399さ1234",
+    "regex_vehicle_numbers": [
+      "1350 1625",
+      "ABC99",
+      "1625",
+      "8765 0001",
+      "1350",
+      "448 173",
+      "1234",
+      "98765",
+      "0001",
+      "ZZZ99",
+      "SAMPLE01"
+    ],
+    "confidence": "高"
+  }
+}

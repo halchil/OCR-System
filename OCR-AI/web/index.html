@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT OCR AI システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: #e3f2fd;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .analysis-type-select {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+        }
+
+        .preview {
+            margin: 20px 0;
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .file-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .file-item:hover {
+            background-color: #e9ecef;
+        }
+
+        .api-info {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 ChatGPT OCR AI システム</h1>
+            <p>ChatGPT GPT-4 Vision APIを使用した高度な画像解析システム</p>
+        </div>
+
+        <div class="content">
+            <div class="api-info">
+                <strong>🔄 API使用状況:</strong> ChatGPT GPT-4 Vision API
+            </div>
+
+            <div class="upload-section" id="uploadSection">
+                <h3>画像をアップロード</h3>
+                <p>PNG, JPG, JPEG, GIF, BMP, TIFF形式の画像をアップロードしてください</p>
+                
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    ファイルを選択
+                </button>
+                
+                <div style="margin: 20px 0;">
+                    <label for="analysisType">分析タイプ:</label>
+                    <select id="analysisType" class="analysis-type-select">
+                        <option value="general">一般解析</option>
+                        <option value="vehicle">車両解析</option>
+                    </select>
+                </div>
+
+                <button class="upload-btn" id="processBtn" onclick="processImage()" style="display: none;">
+                    🔍 AI解析を実行
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>ChatGPT APIで画像を解析中...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+            <div class="success" id="success"></div>
+
+            <div class="results" id="results">
+                <h3>📊 解析結果</h3>
+                <div id="resultContent"></div>
+            </div>
+
+            <div class="file-list">
+                <h3>📁 アップロード済みファイル</h3>
+                <div id="fileList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        // ファイル選択時の処理
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                showPreview(file);
+                document.getElementById('processBtn').style.display = 'inline-block';
+                hideMessages();
+            }
+        });
+
+        // ドラッグ&ドロップ対応
+        const uploadSection = document.getElementById('uploadSection');
+        
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                document.getElementById('fileInput').files = files;
+                showPreview(files[0]);
+                document.getElementById('processBtn').style.display = 'inline-block';
+                hideMessages();
+            }
+        });
+
+        // プレビュー表示
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.createElement('img');
+                preview.src = e.target.result;
+                preview.className = 'preview';
+                preview.style.maxHeight = '300px';
+                
+                const existingPreview = document.querySelector('.preview');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
+                
+                uploadSection.appendChild(preview);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 画像処理
+        async function processImage() {
+            if (!selectedFile) {
+                showError('ファイルが選択されていません');
+                return;
+            }
+
+            const analysisType = document.getElementById('analysisType').value;
+            
+            showLoading();
+            hideMessages();
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('analysis_type', analysisType);
+
+            try {
+                console.log('APIリクエスト開始:', '/api/ocr');
+                const response = await fetch('/api/ocr', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('レスポンスステータス:', response.status);
+                console.log('レスポンスヘッダー:', response.headers);
+
+                // レスポンスの内容をテキストとして取得
+                const responseText = await response.text();
+                console.log('レスポンス内容:', responseText);
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error('JSON解析エラー:', jsonError);
+                    console.error('レスポンス内容:', responseText);
+                    showError('サーバーからの応答がJSON形式ではありません: ' + responseText.substring(0, 200));
+                    return;
+                }
+
+                if (response.ok) {
+                    showSuccess('解析が完了しました！');
+                    displayResults(result);
+                    loadFileList();
+                } else {
+                    showError(result.error || '解析に失敗しました');
+                }
+            } catch (error) {
+                console.error('ネットワークエラー詳細:', error);
+                showError('ネットワークエラー: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 結果表示
+        function displayResults(result) {
+            const resultContent = document.getElementById('resultContent');
+            const analysisResult = result.analysis_result;
+            
+            let html = `
+                <div class="result-item">
+                    <strong>📄 ファイル名:</strong> ${result.filename}<br>
+                    <strong>🤖 使用API:</strong> ${result.api_used}<br>
+                    <strong>🚗 検出された車両番号数:</strong> ${result.vehicle_numbers.length}個
+                </div>
+            `;
+
+            // 車両番号の詳細表示
+            if (result.vehicle_numbers && result.vehicle_numbers.length > 0) {
+                html += `
+                    <div class="result-item">
+                        <strong>🚗 検出された車両番号:</strong><br>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            ${result.vehicle_numbers.map(num => `<li>${num}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // ChatGPT APIからの車両情報
+            if (analysisResult.vehicle_number) {
+                html += `
+                    <div class="result-item">
+                        <strong>🤖 ChatGPT API検出結果:</strong><br>
+                        <strong>🚗 車両番号:</strong> ${analysisResult.vehicle_number}<br>
+                        <strong>🚙 車種・メーカー:</strong> ${analysisResult.vehicle_type || '不明'}<br>
+                        <strong>🎨 色:</strong> ${analysisResult.color || '不明'}<br>
+                        <strong>📝 その他の情報:</strong> ${analysisResult.other_info || 'なし'}<br>
+                        <strong>🎯 確信度:</strong> ${analysisResult.confidence || '不明'}
+                    </div>
+                `;
+            }
+
+            // 処理情報の表示
+            if (result.processing_info) {
+                html += `
+                    <div class="result-item">
+                        <strong>📊 処理情報:</strong><br>
+                        <strong>🔢 総車両番号数:</strong> ${result.processing_info.total_vehicle_numbers_found}<br>
+                        <strong>🤖 API検出番号:</strong> ${result.processing_info.api_vehicle_number || 'なし'}<br>
+                        <strong>🔍 正規表現検出:</strong> ${result.processing_info.regex_vehicle_numbers.join(', ') || 'なし'}<br>
+                        <strong>🎯 確信度:</strong> ${result.processing_info.confidence}
+                    </div>
+                `;
+            }
+
+            if (analysisResult.text_content) {
+                html += `
+                    <div class="result-item">
+                        <strong>📝 テキスト内容:</strong><br>
+                        <pre style="white-space: pre-wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px;">${analysisResult.text_content}</pre>
+                    </div>
+                `;
+            }
+
+            if (analysisResult.important_info) {
+                html += `
+                    <div class="result-item">
+                        <strong>🔍 重要な情報:</strong><br>
+                        <pre style="white-space: pre-wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px;">${analysisResult.important_info}</pre>
+                    </div>
+                `;
+            }
+
+            if (analysisResult.image_type) {
+                html += `
+                    <div class="result-item">
+                        <strong>🖼️ 画像タイプ:</strong> ${analysisResult.image_type}
+                    </div>
+                `;
+            }
+
+            if (analysisResult.analysis) {
+                html += `
+                    <div class="result-item">
+                        <strong>📊 詳細分析:</strong><br>
+                        <pre style="white-space: pre-wrap; background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px;">${analysisResult.analysis}</pre>
+                    </div>
+                `;
+            }
+
+            resultContent.innerHTML = html;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // ファイル一覧読み込み
+        async function loadFileList() {
+            try {
+                console.log('ファイル一覧取得開始');
+                const response = await fetch('/api/files');
+                console.log('ファイル一覧レスポンスステータス:', response.status);
+                
+                const responseText = await response.text();
+                console.log('ファイル一覧レスポンス内容:', responseText);
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (jsonError) {
+                    console.error('ファイル一覧JSON解析エラー:', jsonError);
+                    console.error('ファイル一覧レスポンス内容:', responseText);
+                    return;
+                }
+                
+                const fileList = document.getElementById('fileList');
+                if (data.files && data.files.length > 0) {
+                    let html = '';
+                    data.files.forEach(file => {
+                        const size = (file.size / 1024).toFixed(1);
+                        const date = new Date(file.modified).toLocaleString('ja-JP');
+                        html += `
+                            <div class="file-item">
+                                <strong>${file.filename}</strong><br>
+                                <small>サイズ: ${size}KB | 更新: ${date}</small>
+                            </div>
+                        `;
+                    });
+                    fileList.innerHTML = html;
+                } else {
+                    fileList.innerHTML = '<p>アップロードされたファイルはありません</p>';
+                }
+            } catch (error) {
+                console.error('ファイル一覧の読み込みに失敗:', error);
+            }
+        }
+
+        // UI制御関数
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const success = document.getElementById('success');
+            success.textContent = message;
+            success.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFileList();
+        });
+    </script>
+</body>
+</html>
