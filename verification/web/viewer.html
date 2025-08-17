@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>画像ビューアー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .image-container {
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #fafafa;
+        }
+
+        .image-viewer {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            cursor: zoom-in;
+        }
+
+        .image-viewer.zoomed {
+            cursor: zoom-out;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn.secondary {
+            background: #6c757d;
+        }
+
+        .file-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .file-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .file-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .image-viewer {
+                max-height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖼️ 画像ビューアー</h1>
+            <p>アップロードされた画像を表示</p>
+        </div>
+
+        <div class="content">
+            <div id="loading" class="loading">
+                画像を読み込み中...
+            </div>
+
+            <div id="error" class="error" style="display: none;">
+                画像の読み込みに失敗しました。
+            </div>
+
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <h3>📁 ファイル情報</h3>
+                <p><strong>ファイル名:</strong> <span id="fileName"></span></p>
+                <p><strong>サイズ:</strong> <span id="fileSize"></span></p>
+                <p><strong>タイプ:</strong> <span id="fileType"></span></p>
+            </div>
+
+            <div id="imageContainer" class="image-container" style="display: none;">
+                <img id="imageViewer" class="image-viewer" alt="画像">
+            </div>
+
+            <div id="controls" class="controls" style="display: none;">
+                <button class="btn" onclick="zoomIn()">🔍 拡大</button>
+                <button class="btn" onclick="zoomOut()">🔍 縮小</button>
+                <button class="btn" onclick="resetZoom()">🔄 リセット</button>
+                <button class="btn secondary" onclick="downloadImage()">💾 ダウンロード</button>
+                <button class="btn secondary" onclick="goBack()">← 戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScale = 1;
+        let imageElement = null;
+
+        // URLパラメータからファイル名を取得
+        function getFileNameFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('file');
+        }
+
+        // 画像を読み込み
+        function loadImage() {
+            const fileName = getFileNameFromUrl();
+            if (!fileName) {
+                showError('ファイル名が指定されていません。');
+                return;
+            }
+
+            const imageUrl = `/uploads/${fileName}`;
+            imageElement = document.getElementById('imageViewer');
+            
+            imageElement.onload = function() {
+                hideLoading();
+                showImage();
+                updateFileInfo(fileName);
+            };
+
+            imageElement.onerror = function() {
+                hideLoading();
+                showError('画像の読み込みに失敗しました。');
+            };
+
+            imageElement.src = imageUrl;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('imageContainer').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('fileInfo').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        function showImage() {
+            document.getElementById('imageContainer').style.display = 'block';
+            document.getElementById('controls').style.display = 'flex';
+            document.getElementById('fileInfo').style.display = 'block';
+        }
+
+        function updateFileInfo(fileName) {
+            document.getElementById('fileName').textContent = fileName;
+            
+            // ファイルサイズを取得（実際のサイズは取得できないので、表示のみ）
+            document.getElementById('fileSize').textContent = '不明';
+            
+            // ファイルタイプを推測
+            const extension = fileName.split('.').pop().toLowerCase();
+            const typeMap = {
+                'jpg': 'JPEG画像',
+                'jpeg': 'JPEG画像',
+                'png': 'PNG画像',
+                'gif': 'GIF画像',
+                'bmp': 'BMP画像',
+                'tiff': 'TIFF画像'
+            };
+            document.getElementById('fileType').textContent = typeMap[extension] || '画像ファイル';
+        }
+
+        function zoomIn() {
+            currentScale *= 1.2;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            currentScale /= 1.2;
+            applyZoom();
+        }
+
+        function resetZoom() {
+            currentScale = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            if (imageElement) {
+                imageElement.style.transform = `scale(${currentScale})`;
+                imageElement.style.transformOrigin = 'center center';
+                
+                if (currentScale !== 1) {
+                    imageElement.classList.add('zoomed');
+                } else {
+                    imageElement.classList.remove('zoomed');
+                }
+            }
+        }
+
+        function downloadImage() {
+            const fileName = getFileNameFromUrl();
+            if (fileName && imageElement) {
+                const link = document.createElement('a');
+                link.href = imageElement.src;
+                link.download = fileName;
+                link.click();
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // ページ読み込み時に画像を表示
+        window.onload = function() {
+            showLoading();
+            loadImage();
+        };
+
+        // キーボードショートカット
+        document.addEventListener('keydown', function(e) {
+            switch(e.key) {
+                case '+':
+                case '=':
+                    e.preventDefault();
+                    zoomIn();
+                    break;
+                case '-':
+                    e.preventDefault();
+                    zoomOut();
+                    break;
+                case '0':
+                    e.preventDefault();
+                    resetZoom();
+                    break;
+                case 'Escape':
+                    goBack();
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>

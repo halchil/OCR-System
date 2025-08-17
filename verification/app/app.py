@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 from werkzeug.utils import secure_filename
 import json
+import re
 from datetime import datetime
 
 app = Flask(__name__)
@@ -27,6 +28,26 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def extract_vehicle_number(text):
+    """車両番号（ナンバープレート）を抽出する"""
+    # 車両番号のパターン（例：品川500 あ 1234）
+    patterns = [
+        # 品川500 あ 1234 の形式
+        r'([あ-ん]{2,3}\s*\d{1,4}\s*[あ-ん]\s*\d{1,4})',
+        # 品川500あ1234 の形式（スペースなし）
+        r'([あ-ん]{2,3}\d{1,4}[あ-ん]\d{1,4})',
+        # 数字のみのパターン（車台番号など）
+        r'(\d{4}[A-Z]\d{6})',  # 例：1234A123456
+        r'([A-Z]{2}\d{2}[A-Z]{2}\d{4})',  # 例：AB12CD1234
+    ]
+    
+    vehicle_numbers = []
+    for pattern in patterns:
+        matches = re.findall(pattern, text)
+        vehicle_numbers.extend(matches)
+    
+    return vehicle_numbers
 
 
 
@@ -78,12 +99,16 @@ def ocr_process():
             print(f"OCR処理エラー: {str(ocr_error)}")
             return jsonify({'error': f'OCR processing failed: {str(ocr_error)}'}), 500
         
+        # 車両番号の抽出
+        vehicle_numbers = extract_vehicle_number(text_result)
+        
         # 結果の保存
         result_data = {
             'filename': filename,
             'timestamp': timestamp,
             'languages': languages,
             'text_result': text_result.strip(),
+            'vehicle_numbers': vehicle_numbers,
             'confidence': pytesseract.image_to_data(Image.open(filepath), lang=languages, output_type=pytesseract.Output.DICT)
         }
         
@@ -98,6 +123,7 @@ def ocr_process():
             'success': True,
             'filename': filename,
             'text_result': text_result.strip(),
+            'vehicle_numbers': vehicle_numbers,
             'result_file': result_filename
         }
         

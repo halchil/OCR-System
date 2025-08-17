@@ -98,6 +98,9 @@
         }
 
         .results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
             margin-top: 30px;
         }
 
@@ -228,8 +231,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 Tesseract OCR 検証システム</h1>
-            <p>画像からテキストを抽出するOCRシステム</p>
+            <h1>🚗 車両番号抽出システム</h1>
+            <p>自動車検査証から車両番号を自動抽出するシステム</p>
         </div>
 
         <div class="content">
@@ -270,7 +273,11 @@
 
             <div id="results" class="results" style="display: none;">
                 <div class="result-box">
-                    <h3>📄 OCR結果</h3>
+                    <h3>🚗 抽出された車両番号</h3>
+                    <div id="vehicleNumbers" class="result-text"></div>
+                </div>
+                <div class="result-box">
+                    <h3>📄 全テキスト（参考）</h3>
                     <div id="ocrResult" class="result-text"></div>
                 </div>
             </div>
@@ -292,6 +299,7 @@
         const status = document.getElementById('status');
         const results = document.getElementById('results');
         const ocrResult = document.getElementById('ocrResult');
+        const vehicleNumbers = document.getElementById('vehicleNumbers');
         const fileList = document.getElementById('fileList');
 
         // ドラッグ&ドロップ機能
@@ -372,8 +380,20 @@
         }
 
         function displayResults(data) {
+            // 車両番号の表示
+            if (data.vehicle_numbers && data.vehicle_numbers.length > 0) {
+                vehicleNumbers.innerHTML = data.vehicle_numbers.map(num => 
+                    `<div style="background: #e8f5e8; padding: 10px; margin: 5px 0; border-radius: 5px; font-weight: bold; color: #2e7d32;">
+                        🚗 ${num}
+                    </div>`
+                ).join('');
+            } else {
+                vehicleNumbers.innerHTML = '<div style="color: #d32f2f; padding: 10px;">車両番号が検出されませんでした。</div>';
+            }
+            
+            // 全テキストの表示
             ocrResult.textContent = data.text_result || 'テキストが検出されませんでした。';
-            results.style.display = 'block';
+            results.style.display = 'grid';
         }
 
         async function loadFileList() {
@@ -386,13 +406,20 @@
                     data.files.forEach(file => {
                         const fileItem = document.createElement('div');
                         fileItem.className = 'file-item';
+                        // 結果ファイル名の生成（タイムスタンプ部分を抽出）
+                        const timestamp = file.filename.match(/^(\d{8}_\d{6})/);
+                        const resultFilename = timestamp ? `${timestamp[1]}_result.json` : `${file.filename.replace(/\.[^/.]+$/, '')}_result.json`;
                         fileItem.innerHTML = `
                             <div class="file-info">
                                 <div class="file-name">${file.filename}</div>
                                 <div class="file-size">${formatFileSize(file.size)} - ${new Date(file.modified).toLocaleString()}</div>
                             </div>
-                            <a href="/results/${file.filename.replace(/\.[^/.]+$/, '_result.json')}" 
-                               class="download-btn" target="_blank">結果を表示</a>
+                            <div style="display: flex; gap: 10px;">
+                                <a href="/viewer.html?file=${file.filename}" 
+                                   class="download-btn" target="_blank" style="background: #007bff;">画像表示</a>
+                                <a href="/results/${resultFilename}" 
+                                   class="download-btn" target="_blank">結果表示</a>
+                            </div>
                         `;
                         fileList.appendChild(fileItem);
                     });
